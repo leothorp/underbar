@@ -3,6 +3,7 @@
 
   window._ = {};
 
+
   // Returns whatever value is passed as the argument. This function doesn't
   // seem very useful, but remember it--if a function needs to provide an
   // iterator when the user does not pass one in, this will be handy.
@@ -369,7 +370,15 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+    var firstElement = true;
+    return _.map(collection, function(element) {
+      var func = typeof functionOrKey === 'function' ? functionOrKey : element[functionOrKey];
+      return func.apply(element, args); 
+    });
+    
   };
+
+
 
   // Sort the object's values by a criterion produced by an iterator.
   // If iterator is a string, sort objects by that property with the name
@@ -383,15 +392,35 @@
   //
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
+  //iterate through array once, pushing each element of each array to appropriate index
   _.zip = function() {
+    var longest = 0;
+    var argsArray = Array.prototype.slice.call(arguments);
+    _.each(argsArray, function(element) {
+      if (element.length > longest) {
+        longest = element.length;
+      }
+    }); 
+    var results = [];
+    for (var i = 0; i < longest; i++) {
+      results[i] = _.pluck(argsArray, i);
+    }
+    return results;
+
   };
+
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
   // The new array should contain all elements of the multidimensional array.
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    return _.reduce(nestedArray, function(total, element) {
+      return total.concat(Array.isArray(element) ? _.flatten(element) : element);
+    }, []);
   };
+
+
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
@@ -409,5 +438,31 @@
   //
   // Note: This is difficult! It may take a while to implement.
   _.throttle = function(func, wait) {
+    var startTime;
+    var returnValue;
+    var reCalled = false;
+    return function() {
+      if (startTime === undefined || (Date.now() - startTime >= wait)) {
+        console.log('case1');
+        reCalled = false;
+        startTime = Date.now();
+        returnValue = func.apply(null, arguments);
+        return returnValue;
+      } else if (!reCalled) {
+        console.log('case2');
+        reCalled = true;
+        var timeElapsed = Date.now() - startTime;
+        var timeRemaining = wait - timeElapsed;
+        setTimeout(function() {
+          reCalled = false;
+          startTime = Date.now();
+          returnValue = func.apply(null, arguments);        
+        }, timeRemaining);
+        return returnValue;
+      } else {
+        console.log('case3');
+        return returnValue;
+      }
+    };
   };
 }());
